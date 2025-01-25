@@ -24,23 +24,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
           GH_REPO: ${{ github.repository_owner }}/xenia-canary-releases
         run: |
-          # REMOVE THIS v
-          if [ -z "$GITHUB_SHA" ]; then
-            echo "GITHUB_SHA is not set!"
-            error=1
-          else
-            echo "GITHUB_SHA = $GITHUB_SHA"
-          fi
-          if [ -z "$GITHUB_REF_NAME" ]; then
-            echo "GITHUB_REF_NAME is not set!"
-            error=1
-          else
-            echo "GITHUB_REF_NAME = $GITHUB_REF_NAME"
-          fi
-          if [ -n "$error" ]; then
-            exit 1
-          fi
-          # REMOVE THIS ^
           rm -rf artifacts/**/*.pdb
           case ${{ inputs.os }} in
             windows)
@@ -60,18 +43,14 @@ jobs:
           target=925ed98d5dce604b651027c36fb522dc1ff0fa55
           title="${tag}_$GITHUB_REF_NAME"
           if gh release view $tag; then
-            gh release upload $tag $asset --clobber --target $target -t $GITHUB_REF_NAME
+            gh release upload $tag $asset --clobber
           else
             gh release create $tag $asset --target $target -t $title
           fi
-          # Remove canary_ to prevent conflicts from tag
-          tag=${GITHUB_REF_NAME/canary_}
-          if [ -z $tag ]; then
-            echo "::error::Tag is blank!"
-            exit 1
-          fi
+          tag=$GITHUB_REF_NAME
+          title=$tag
           if gh release view $tag; then
-            gh release upload $tag $asset --clobber --target $target -t $GITHUB_REF_NAME
+            gh release upload $tag $asset --clobber
           else
             gh release create $tag $asset --target $target -t $title
           fi
